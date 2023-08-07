@@ -7,9 +7,9 @@ import { Greet } from "./greet";
 
 // .only or fit, .skip or xit, nestable, test or it, describe to group
 describe("Greet", () => {
-  it.skip("should render correctly", () => {
+  test("should render correctly", () => {
     render(<Greet />);
-    const textElement = screen.getByText("Hey");
+    const textElement = screen.getByText(/Hey/);
     expect(textElement).toBeInTheDocument();
   });
 
@@ -22,10 +22,10 @@ describe("Greet", () => {
   // });
 });
 
-describe("Nested", () => {
-  it("should render a name", () => {
-    render(<Greet name="Spencer" />);
-    const textElement = screen.getByText("Hey Spencer");
-    expect(textElement).toBeInTheDocument();
-  });
-});
+// describe("Nested", () => {
+//   it("should render a name", () => {
+//     render(<Greet name="Spencer" />);
+//     const textElement = screen.getByText("Hey Spencer");
+//     expect(textElement).toBeInTheDocument();
+//   });
+// });

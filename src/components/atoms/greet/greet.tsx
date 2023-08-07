@@ -3,5 +3,5 @@ interface Props {
 }
 
 export const Greet = (props: Props) => {
-  return <div>Hey {props.name}</div>;
+  return <div>Hey {props.name ? props.name : "Guest"}</div>;
 };
