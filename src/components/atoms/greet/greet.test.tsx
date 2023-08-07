@@ -5,14 +5,27 @@
 import { render, screen } from "@/utils";
 import { Greet } from "./greet";
 
-test("should render correctly", () => {
-  render(<Greet />);
-  const textElement = screen.getByText("Hey");
-  expect(textElement).toBeInTheDocument();
+// .only, .skip, nestable
+describe("Greet", () => {
+  test("should render correctly", () => {
+    render(<Greet />);
+    const textElement = screen.getByText("Hey");
+    expect(textElement).toBeInTheDocument();
+  });
+
+  // describe("Nested", () => {
+  //   test("should render a name", () => {
+  //     render(<Greet name="Spencer" />);
+  //     const textElement = screen.getByText("Hey Spencer");
+  //     expect(textElement).toBeInTheDocument();
+  //   });
+  // });
 });
 
-test("should render with an name", () => {
-  render(<Greet name="Spencer" />);
-  const textElement = screen.getByText("Hey Spencer");
-  expect(textElement).toBeInTheDocument();
+describe("Nested", () => {
+  test("should render a name", () => {
+    render(<Greet name="Spencer" />);
+    const textElement = screen.getByText("Hey Spencer");
+    expect(textElement).toBeInTheDocument();
+  });
 });
