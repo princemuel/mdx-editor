@@ -13,13 +13,11 @@ export default defineConfig({
     globals: true,
     name: "happy-dom",
     environment: "happy-dom",
-    setupFiles: "./src/utils/tests.setup.ts",
-    // reporters: ["default", "html"],
+    setupFiles: "./src/setup-tests.ts",
     coverage: {
       all: true,
       enabled: true,
       provider: "v8",
-      // reporter: ["text", "json", "html"],
       exclude: [
         "**/index.ts",
         "**/*{.,-}{test,spec,types,stories,constants,d}.?(c|m)[jt]s?(x)",
