@@ -20,6 +20,7 @@ describe("Input", async () => {
       })
     ).toBeInTheDocument();
   });
+
   it("should change input value", async () => {
     render(
       <Input
@@ -41,6 +42,7 @@ describe("Input", async () => {
     await userEvent.type(input, "1337");
     expect(input).toHaveValue("1337");
   });
+
   it("should render the input with error", () => {
     render(
       <Input
