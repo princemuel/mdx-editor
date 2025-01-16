@@ -1,2 +1,1 @@
-# mdx-editor
-refine.dev hackathon project
+# The Dumbed-Down Implementation of Bitcoin Core in Rust
