@@ -28,7 +28,7 @@ impl Block {
         Block { header, transactions }
     }
     pub fn hash(&self) -> ! {
-        unimplemented!()
+        todo!()
     }
 }
 
@@ -55,7 +55,7 @@ impl BlockHeader {
         BlockHeader { timestamp, nonce, prev_block_hash, merkle_root, target }
     }
     pub fn hash(&self) -> ! {
-        unimplemented!()
+        todo!()
     }
 }
 
