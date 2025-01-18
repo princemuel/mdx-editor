@@ -5,11 +5,12 @@ use sha256::digest;
 
 use crate::U256;
 
-#[derive(Clone, Copy, Serialize, Deserialize, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Hash(U256);
 impl Hash {
     /// hash anything that can be serde Serialized via ciborium
-    pub fn new<T: serde::Serialize>(data: &T) -> Self {
+    pub fn new<T: Serialize>(data: &T) -> Self {
+        // ? check performance using a array buffer vs vector
         let mut serialized = vec![];
         if let Err(e) = ciborium::into_writer(data, &mut serialized) {
             panic!("Failed to serialize data: {e:?}.  This should not happen",);
