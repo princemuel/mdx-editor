@@ -8,6 +8,7 @@ construct_uint! {
 }
 
 pub mod crypto;
+pub mod error;
 pub mod interfaces;
 pub mod sha256;
 pub mod util;
