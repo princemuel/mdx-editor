@@ -1,8 +1,11 @@
+use serde::{Deserialize, Serialize};
 use uint::construct_uint;
 
-// Construct an unsigned 256-bit integer
-// consisting of 4 x 64-bit words
-construct_uint! { pub struct U256(4); }
+construct_uint! {
+   // Construct an unsigned 256-bit integer consisting of 4 x 64-bit words
+   #[derive(Serialize, Deserialize)]
+   pub struct U256(4);
+}
 
 pub mod crypto;
 pub mod interfaces;

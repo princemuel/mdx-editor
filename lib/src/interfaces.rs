@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 use crate::U256;
@@ -34,7 +35,7 @@ impl Block {
 
 pub struct BlockHeader {
     /// The timestamp of the block
-    pub timestamp: u64,
+    pub timestamp: DateTime<Utc>,
     /// The nonce used to mine the block
     pub nonce: u64,
     /// The hash of the previous block
@@ -46,7 +47,7 @@ pub struct BlockHeader {
 }
 impl BlockHeader {
     pub fn new(
-        timestamp: u64,
+        timestamp: DateTime<Utc>,
         nonce: u64,
         prev_block_hash: [u8; 32],
         merkle_root: [u8; 32],
