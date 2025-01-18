@@ -1,3 +1,5 @@
+use uuid::Uuid;
+
 use crate::U256;
 
 pub struct Blockchain {
@@ -57,4 +59,14 @@ impl BlockHeader {
     }
 }
 
-pub struct Transaction;
+pub struct Transaction {}
+
+pub struct TransactionInput {
+    pub prev_transaction_output_hash: [u8; 32],
+    pub signature: [u8; 64],
+}
+pub struct TransactionOutput {
+    pub value: u64,
+    pub unique_id: Uuid,
+    pub pubkey: [u8; 33],
+}
