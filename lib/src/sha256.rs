@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::U256;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Hash(U256);
 impl Hash {
     /// hash anything that can be serde Serialized via ciborium

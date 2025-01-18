@@ -59,7 +59,7 @@ impl Blockchain {
         for block in &self.blocks {
             for tx in &block.transactions {
                 for input in &tx.inputs {
-                    self.utxos.remove(&input.prev_transaction_hash);
+                    self.utxos.remove(&input.prev_transaction_output_hash);
                 }
 
                 for output in tx.outputs.iter() {
@@ -69,6 +69,7 @@ impl Blockchain {
         }
     }
 }
+
 impl Default for Blockchain {
     fn default() -> Self {
         Blockchain::new()
@@ -87,8 +88,58 @@ impl Block {
     pub fn hash(&self) -> Hash {
         Hash::new(self)
     }
-    pub fn verify_transactions() -> ! {
-        todo!()
+    pub fn verify_transactions(
+        &self,
+        utxos: &HashMap<Hash, TxOut>,
+    ) -> Result<()> {
+        let mut inputs = HashMap::new();
+        if self.transactions.is_empty() {
+            return Err(BtcError::InvalidTransaction);
+        }
+        for tx in &self.transactions {
+            let mut input_value = 0;
+            let mut output_value = 0;
+
+            for input in &tx.inputs {
+                let prev_output =
+                    utxos.get(&input.prev_transaction_output_hash);
+
+                if prev_output.is_none() {
+                    return Err(BtcError::InvalidTransaction);
+                }
+                let prev_output = prev_output.unwrap();
+
+                // prevents same-block double-spending
+                if inputs.contains_key(&input.prev_transaction_output_hash) {
+                    return Err(BtcError::InvalidTransaction);
+                }
+
+                // check if the signature is valid
+                if !input.signature.verify(
+                    &input.prev_transaction_output_hash,
+                    &prev_output.pubkey,
+                ) {
+                    return Err(BtcError::InvalidSignature);
+                }
+
+                input_value += prev_output.value;
+                inputs.insert(
+                    input.prev_transaction_output_hash,
+                    prev_output.clone(),
+                );
+            }
+
+            for output in &tx.outputs {
+                output_value += output.value;
+            }
+
+            // It is fine for output value to be less than input value
+            // as the difference is the fee for the miner
+            if input_value < output_value {
+                return Err(BtcError::InvalidTransaction);
+            }
+        }
+        Ok(())
     }
 }
 
@@ -136,7 +187,7 @@ impl Transaction {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TxIn {
-    pub prev_transaction_hash: Hash,
+    pub prev_transaction_output_hash: Hash,
     pub signature: Signature,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -26,9 +26,7 @@ impl Signature {
 pub struct PublicKey(VerifyingKey<Secp256k1>);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PrivateKey(
-    #[serde(with = "signkey_serde")] pub SigningKey<Secp256k1>,
-);
+pub struct PrivateKey(#[serde(with = "transformer")] pub SigningKey<Secp256k1>);
 impl PrivateKey {
     pub fn new() -> Self {
         Self(SigningKey::random(&mut rand::thread_rng()))
@@ -43,7 +41,7 @@ impl Default for PrivateKey {
     }
 }
 
-mod signkey_serde {
+mod transformer {
     use super::*;
     use serde::{Deserializer, Serializer};
 
