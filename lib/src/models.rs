@@ -48,7 +48,7 @@ impl Blockchain {
                 return Err(BtcError::InvalidBlock);
             }
 
-            // block.verify_transactions(self.block_height(), &self.utxos)?;
+            // block.verify_txs(self.block_height(), &self.utxos)?;
         }
         self.blocks.push(block);
         Ok(())
@@ -88,28 +88,37 @@ impl Block {
     pub fn hash(&self) -> Hash {
         Hash::new(self)
     }
-    pub fn verify_transactions(
+    pub fn verify_txs(
         &self,
+        predicted_block_height: u64,
         utxos: &HashMap<Hash, TxOut>,
     ) -> Result<()> {
         let mut inputs = HashMap::new();
+
+        // reject completely empty blocks
         if self.transactions.is_empty() {
             return Err(BtcError::InvalidTransaction);
         }
-        for tx in &self.transactions {
-            let mut input_value = 0;
-            let mut output_value = 0;
+
+        // verify the coinbase transaction i.e the first transaction in a block
+        // in this transaction, a new bitcoin is minted
+        self.verify_coinbase_tx(predicted_block_height, utxos)?;
+
+        for tx in self.transactions.iter().skip(1) {
+            let mut input_amount = 0;
+            let mut output_amount = 0;
 
             for input in &tx.inputs {
                 let prev_output =
                     utxos.get(&input.prev_transaction_output_hash);
 
+                // TODO: see if the is_none check / unwrap can be merged
                 if prev_output.is_none() {
                     return Err(BtcError::InvalidTransaction);
                 }
                 let prev_output = prev_output.unwrap();
 
-                // prevents same-block double-spending
+                // prevent same-block double-spending
                 if inputs.contains_key(&input.prev_transaction_output_hash) {
                     return Err(BtcError::InvalidTransaction);
                 }
@@ -122,7 +131,7 @@ impl Block {
                     return Err(BtcError::InvalidSignature);
                 }
 
-                input_value += prev_output.value;
+                input_amount += prev_output.amount;
                 inputs.insert(
                     input.prev_transaction_output_hash,
                     prev_output.clone(),
@@ -130,16 +139,24 @@ impl Block {
             }
 
             for output in &tx.outputs {
-                output_value += output.value;
+                output_amount += output.amount;
             }
 
             // It is fine for output value to be less than input value
             // as the difference is the fee for the miner
-            if input_value < output_value {
+            if input_amount < output_amount {
                 return Err(BtcError::InvalidTransaction);
             }
         }
         Ok(())
+    }
+
+    pub fn verify_coinbase_tx(
+        self,
+        block_height: u64,
+        utxos: &HashMap<Hash, TxOut>,
+    ) -> Result<()> {
+        todo!()
     }
 }
 
@@ -190,9 +207,10 @@ pub struct TxIn {
     pub prev_transaction_output_hash: Hash,
     pub signature: Signature,
 }
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TxOut {
-    pub value: u64,
+    pub amount: u64,
     pub unique_id: Uuid,
     pub pubkey: PublicKey,
 }

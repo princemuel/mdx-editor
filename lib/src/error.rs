@@ -2,25 +2,25 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum BtcError {
-    #[error("Invalid transaction")]
+    #[error("This transaction is invalid")]
     InvalidTransaction,
-    #[error("Invalid block")]
+    #[error("This block is invalid")]
     InvalidBlock,
-    #[error("Invalid block header")]
+    #[error("This block header is invalid")]
     InvalidBlockHeader,
-    #[error("Invalid transaction input")]
+    #[error("This transaction input is invalid")]
     InvalidTransactionInput,
-    #[error("Invalid transaction output")]
+    #[error("This transaction output is invalid")]
     InvalidTransactionOutput,
-    #[error("Invalid Merkle root")]
+    #[error("This merkle root is invalid")]
     InvalidMerkleRoot,
-    #[error("Invalid hash")]
+    #[error("This hash is invalid")]
     InvalidHash,
-    #[error("Invalid signature")]
+    #[error("This signature is invalid")]
     InvalidSignature,
-    #[error("Invalid public key")]
+    #[error("This public key is invalid")]
     InvalidPublicKey,
-    #[error("Invalid private key")]
+    #[error("This private key is invalid")]
     InvalidPrivateKey,
 }
 

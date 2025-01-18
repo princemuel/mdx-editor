@@ -7,6 +7,7 @@ construct_uint! {
    pub struct U256(4);
 }
 
+pub mod constants;
 pub mod crypto;
 pub mod error;
 pub mod models;

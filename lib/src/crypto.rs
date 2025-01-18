@@ -29,7 +29,7 @@ pub struct PublicKey(VerifyingKey<Secp256k1>);
 pub struct PrivateKey(#[serde(with = "transformer")] pub SigningKey<Secp256k1>);
 impl PrivateKey {
     pub fn new() -> Self {
-        Self(SigningKey::random(&mut rand::thread_rng()))
+        PrivateKey(SigningKey::random(&mut rand::thread_rng()))
     }
     pub fn pubkey(&self) -> PublicKey {
         PublicKey(*self.0.verifying_key())
@@ -37,7 +37,7 @@ impl PrivateKey {
 }
 impl Default for PrivateKey {
     fn default() -> Self {
-        Self::new()
+        PrivateKey::new()
     }
 }
 
@@ -55,11 +55,11 @@ mod transformer {
         serializer.serialize_bytes(&key.to_bytes())
     }
 
-    pub fn deserialize<'d, D>(
+    pub fn deserialize<'de, D>(
         deserializer: D,
     ) -> Result<SigningKey<Secp256k1>, D::Error>
     where
-        D: Deserializer<'d>,
+        D: Deserializer<'de>,
     {
         let bytes = Vec::<u8>::deserialize(deserializer)?;
         Ok(SigningKey::from_slice(&bytes).unwrap())
