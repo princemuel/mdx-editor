@@ -158,9 +158,6 @@ impl Block {
     pub fn new(header: BlockHeader, transactions: Vec<Transaction>) -> Self {
         Block { header, transactions }
     }
-    pub fn hash(&self) -> Hash {
-        Hash::new(self)
-    }
     pub fn verify_txs(
         &self,
         predicted_block_height: u64,
@@ -293,6 +290,10 @@ impl Block {
 
         Ok(input_amount - output_amount)
     }
+
+    pub fn hash(&self) -> Hash {
+        Hash::new(self)
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -317,6 +318,26 @@ impl BlockHeader {
         target: U256,
     ) -> Self {
         BlockHeader { timestamp, nonce, prev_block_hash, merkle_root, target }
+    }
+    pub fn mine(&mut self, steps: usize) -> bool {
+        // if the blodk already matches the target return early
+        if self.hash().matches_target(self.target) {
+            return true;
+        }
+
+        for _ in 0..steps {
+            if let Some(nonce) = self.nonce.checked_add(1) {
+                self.nonce = nonce
+            } else {
+                self.nonce = 0;
+                self.timestamp = Utc::now()
+            }
+            if self.hash().matches_target(self.target) {
+                return true;
+            }
+        }
+
+        false
     }
     pub fn hash(&self) -> Hash {
         Hash::new(self)
