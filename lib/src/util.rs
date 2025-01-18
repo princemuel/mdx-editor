@@ -1,5 +1,8 @@
+use serde::{Deserialize, Serialize};
+
 use crate::{interfaces::Transaction, sha256::Hash};
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MerkleRoot(Hash);
 impl MerkleRoot {
     /// calculate the merkle root of a block's transactions

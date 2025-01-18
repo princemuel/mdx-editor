@@ -5,7 +5,7 @@ use sha256::digest;
 
 use crate::U256;
 
-#[derive(Clone, Copy, Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Hash(U256);
 impl Hash {
     /// hash anything that can be serde Serialized via ciborium
