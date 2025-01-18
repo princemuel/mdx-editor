@@ -74,10 +74,10 @@ impl Transaction {
 
 pub struct TxIn {
     pub prev_transaction_output_hash: [u8; 32],
-    pub signature: [u8; 64],
+    pub signature: [u8; 64], // dummy types, will be replaced later
 }
 pub struct TxOut {
     pub value: u64,
     pub unique_id: Uuid,
-    pub pubkey: [u8; 33],
+    pub pubkey: [u8; 33], // dummy types, will be replaced later
 }
