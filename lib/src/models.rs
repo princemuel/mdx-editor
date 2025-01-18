@@ -1,5 +1,6 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
+use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -14,13 +15,21 @@ use crate::U256;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Blockchain {
     pub blocks: Vec<Block>,
+    #[serde(default, skip_serializing)]
+    pub mempool: Vec<(DateTime<Utc>, Transaction)>,
+    pub target: U256,
     pub utxos: HashMap<Hash, TxOut>,
 }
 impl Blockchain {
     pub fn new() -> Self {
-        Blockchain { blocks: vec![], utxos: HashMap::new() }
+        Blockchain {
+            blocks: vec![],
+            mempool: vec![],
+            target: constants::MIN_TARGET,
+            utxos: HashMap::new(),
+        }
     }
-    /// try to add a new block to the blockchain, return an error if it's not valid
+    /// try to add a new block to the blockchain or return an error if it's invalid
     pub fn add_block(&mut self, block: Block) -> Result<()> {
         if self.blocks.is_empty() {
             if block.header.prev_block_hash != Hash::zero() {
@@ -29,6 +38,7 @@ impl Blockchain {
             }
         } else {
             let last_block = self.blocks.last().unwrap();
+
             if block.header.prev_block_hash != last_block.hash() {
                 println!("the previous block hash is invalid");
                 return Err(BtcError::InvalidBlock);
@@ -40,6 +50,7 @@ impl Blockchain {
             }
 
             let merkel_root = MerkleRoot::new(&block.transactions);
+
             if merkel_root != block.header.merkle_root {
                 println!("invalid merkle root");
                 return Err(BtcError::InvalidMerkleRoot);
@@ -49,10 +60,67 @@ impl Blockchain {
                 return Err(BtcError::InvalidBlock);
             }
 
-            // block.verify_txs(self.block_height(), &self.utxos)?;
+            block.verify_txs(self.block_height(), &self.utxos)?;
         }
+
+        // Remove transactions from mempool that are now in the block
+        let block_txs: HashSet<_> =
+            block.transactions.iter().map(|tx| tx.hash()).collect();
+        self.mempool.retain(|(_, tx)| !block_txs.contains(&tx.hash()));
+
         self.blocks.push(block);
+        self.try_adjust_target();
         Ok(())
+    }
+
+    /// try to adjust the target of the blockchain
+    pub fn try_adjust_target(&mut self) {
+        if self.blocks.is_empty()
+            || 0 != (self.blocks.len()
+                % constants::DIFFICULTY_UPDATE_INTERVAL as usize)
+        {
+            return;
+        }
+
+        // measure the time it took to mine the last block
+        let start_time = self.blocks[self.blocks.len()
+            - constants::DIFFICULTY_UPDATE_INTERVAL as usize]
+            .header
+            .timestamp;
+        let end_time = self.blocks.last().unwrap().header.timestamp;
+
+        let actual_block_time = (end_time - start_time).num_seconds();
+        let ideal_block_time =
+            constants::IDEAL_BLOCK_TIME * constants::DIFFICULTY_UPDATE_INTERVAL;
+
+        // NewTarget = OldTarget * (ActualTime / IdealTime)
+        let target_time =
+            BigDecimal::parse_bytes(self.target.to_string().as_bytes(), 10)
+                .expect("BUG: impossible")
+                * (BigDecimal::from(actual_block_time)
+                    / BigDecimal::from(ideal_block_time));
+
+        // remove (.) and everything after it from the string representation of target_time
+        let target_time_str = target_time
+            .to_string()
+            .split('.')
+            .next()
+            .expect("BUG: Expected a decimal point")
+            .to_owned();
+        let target_time = U256::from_str_radix(&target_time_str, 10)
+            .expect("BUG: impossible");
+
+        // clamp target_time to be within the range of  4 * self.target and self.target / 4
+        let target_time = if target_time < (self.target / 4) {
+            self.target / 4
+        } else if target_time > (self.target * 4) {
+            self.target * 4
+        } else {
+            target_time
+        };
+
+        // if the new target is more than the minimum target, set it to the minimum target
+        self.target = target_time.min(constants::MIN_TARGET);
     }
 
     /// Rebuild the UTXO set from the blockchain
@@ -68,6 +136,10 @@ impl Blockchain {
                 }
             }
         }
+    }
+
+    pub fn block_height(&self) -> u64 {
+        self.blocks.len() as u64
     }
 }
 

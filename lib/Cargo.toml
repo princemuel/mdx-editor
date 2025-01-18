@@ -4,6 +4,7 @@
   edition = "2021"
 
 [dependencies]
+  bigdecimal = "0.4"
   chrono = { version = "0.4", features = ["serde"] }
   ciborium = "0.2"
   ecdsa = { version = "0.16", features = [
