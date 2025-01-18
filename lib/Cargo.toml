@@ -8,9 +8,9 @@
   ciborium = "0.2"
   ecdsa = { version = "0.16", features = [
     "pem",
+    "serde",
     "signing",
     "verifying",
-    "serde",
   ] }
   hex = "0.4"
   k256 = { version = "0.13", features = ["serde", "pem"] }
