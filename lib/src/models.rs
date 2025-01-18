@@ -4,6 +4,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::constants::{self};
 use crate::crypto::{PublicKey, Signature};
 use crate::error::{BtcError, Result};
 use crate::sha256::Hash;
@@ -152,11 +153,73 @@ impl Block {
     }
 
     pub fn verify_coinbase_tx(
-        self,
+        &self,
         block_height: u64,
         utxos: &HashMap<Hash, TxOut>,
     ) -> Result<()> {
-        todo!()
+        // coinbase tx is the first transaction in the block
+        let coinbase_tx = &self.transactions[0];
+        if !coinbase_tx.inputs.is_empty() || coinbase_tx.outputs.is_empty() {
+            return Err(BtcError::InvalidTransaction);
+        }
+
+        let miner_fees = self.compute_miner_fees(utxos)?;
+        let block_reward = constants::INITIAL_REWARD * 10_u64.pow(8)
+            / 2_u64.pow((block_height / constants::HALVING_INTERVAL) as u32);
+
+        let total_coinbase_outs: u64 =
+            coinbase_tx.outputs.iter().map(|output| output.amount).sum();
+
+        if total_coinbase_outs != (block_reward + miner_fees) {
+            return Err(BtcError::InvalidTransaction);
+        }
+
+        Ok(())
+    }
+
+    pub fn compute_miner_fees(
+        &self,
+        utxos: &HashMap<Hash, TxOut>,
+    ) -> Result<u64> {
+        let mut inputs = HashMap::new();
+        let mut outputs = HashMap::new();
+
+        // Check every transaction after coinbase
+        for tx in self.transactions.iter().skip(1) {
+            for input in &tx.inputs {
+                let prev_output =
+                    utxos.get(&input.prev_transaction_output_hash);
+
+                if prev_output.is_none() {
+                    return Err(BtcError::InvalidTransaction);
+                }
+                let prev_output = prev_output.unwrap();
+
+                if inputs.contains_key(&input.prev_transaction_output_hash) {
+                    return Err(BtcError::InvalidTransaction);
+                }
+
+                inputs.insert(
+                    input.prev_transaction_output_hash,
+                    prev_output.clone(),
+                );
+            }
+
+            for output in &tx.outputs {
+                if outputs.contains_key(&output.hash()) {
+                    return Err(BtcError::InvalidTransaction);
+                }
+
+                outputs.insert(output.hash(), output.clone());
+            }
+        }
+
+        let input_amount =
+            inputs.values().map(|output| output.amount).sum::<u64>();
+        let output_amount =
+            outputs.values().map(|output| output.amount).sum::<u64>();
+
+        Ok(input_amount - output_amount)
     }
 }
 
