@@ -59,7 +59,10 @@ impl BlockHeader {
     }
 }
 
-pub struct Transaction {}
+pub struct Transaction {
+    pub inputs: Vec<TransactionInput>,
+    pub outputs: Vec<TransactionOutput>,
+}
 
 pub struct TransactionInput {
     pub prev_transaction_output_hash: [u8; 32],
